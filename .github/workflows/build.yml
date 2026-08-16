@@ -6,23 +6,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
+
       - name: Build with Gradle Cloud CLI
         run: |
-          gradle init --type basic
+          # 1. Structure the required native Android project directories
           mkdir -p app/src/main/java/com/watch/webview app/src/main/res/layout
+          
+          # 2. Safely shift your repository assets into their proper folders
           mv MainActivity.java app/src/main/java/com/watch/webview/
           mv activity_main.xml app/src/main/res/layout/
           mv AndroidManifest.xml app/src/main/
           
-          echo "plugins { id 'com.android.application' version '8.2.0' }" > build.gradle
-          echo "plugins { id 'com.android.application' version '8.2.0' apply false }" > settings.gradle
-          echo "include ':app'" >> settings.gradle
+          # 3. Write out a clean root configuration structure
+          echo "plugins { id 'com.android.application' version '8.2.0' apply false }" > build.gradle
+          echo "include ':app'" > settings.gradle
           
+          # 4. Define the app submodule parameters
           cat << 'EOF' > app/build.gradle
           plugins { id 'com.android.application' }
           android {
@@ -38,9 +43,14 @@ jobs:
           }
           EOF
           
+          # 5. Generate the formal Gradle wrapper ecosystem to build
+          gradle wrapper --gradle-version 8.5
+          
+          # 6. Execute the build engine
           ./gradlew assembleDebug
+
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
-          name: turtle_s_site
+          name: WatchWebViewAPK
           path: app/build/outputs/apk/debug/app-debug.apk
