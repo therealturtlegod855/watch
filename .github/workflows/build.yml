@@ -1,0 +1,46 @@
+name: Build Watch APK
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+      - name: Build with Gradle Cloud CLI
+        run: |
+          gradle init --type basic
+          mkdir -p app/src/main/java/com/watch/webview app/src/main/res/layout
+          mv MainActivity.java app/src/main/java/com/watch/webview/
+          mv activity_main.xml app/src/main/res/layout/
+          mv AndroidManifest.xml app/src/main/
+          
+          echo "plugins { id 'com.android.application' version '8.2.0' }" > build.gradle
+          echo "plugins { id 'com.android.application' version '8.2.0' apply false }" > settings.gradle
+          echo "include ':app'" >> settings.gradle
+          
+          cat << 'EOF' > app/build.gradle
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.watch.webview'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.watch.webview"
+                  minSdk 26
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+          }
+          EOF
+          
+          ./gradlew assembleDebug
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: turtle_s_site
+          path: app/build/outputs/apk/debug/app-debug.apk
