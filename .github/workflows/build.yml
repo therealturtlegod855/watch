@@ -23,9 +23,26 @@ jobs:
           mv activity_main.xml app/src/main/res/layout/
           mv AndroidManifest.xml app/src/main/
           
-          # 3. Write out a clean root configuration structure
+          # 3. Write out a clean root configuration structure with Google plugin sources
           echo "plugins { id 'com.android.application' version '8.2.0' apply false }" > build.gradle
-          echo "include ':app'" > settings.gradle
+          
+          cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          include ':app'
+          EOF
           
           # 4. Define the app submodule parameters
           cat << 'EOF' > app/build.gradle
